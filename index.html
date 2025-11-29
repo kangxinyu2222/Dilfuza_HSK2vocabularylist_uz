@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HSK2 Yangi So'zlar</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Noto Serif SC 字体 -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --uz-blue: #0099B5;
+            --uz-green: #1EB53A;
+            --slate-800: #1e293b;
+            --china-red: #b91c1c; /* 深中国红 */
+            --paper-beige: #fffbf0; /* 宣纸米色 */
+        }
+
+        body {
+            background-color: #fdfcf8;
+            /* 更加淡雅的背景纹理 */
+            background-image: radial-gradient(rgba(211, 47, 47, 0.05) 0.5px, transparent 0.5px);
+            background-size: 20px 20px;
+            background-position: 0 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+        }
+
+        /* 翻转容器样式 */
+        .card-container {
+            perspective: 1000px;
+            aspect-ratio: 4/5;
+        }
+
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
+            transform-style: preserve-3d;
+            cursor: pointer;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .card-inner:hover {
+            box-shadow: 0 10px 20px -3px rgba(185, 28, 28, 0.25); /* 红色阴影 */
+        }
+
+        .card-inner.is-flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 1rem;
+            overflow: hidden;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .card-front {
+            border-bottom: 4px solid var(--china-red); /* 正面改为红色边框 */
+        }
+
+        .card-back {
+            transform: rotateY(180deg);
+            background: #ffffff;
+            border-bottom: 4px solid var(--uz-green);
+            padding: 0;
+        }
+
+        .noselect {
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        
+        /* 中式单色背景框样式 */
+        .chinese-frame {
+            position: relative;
+            display: inline-block;
+            background-color: var(--paper-beige);
+            /* 双线边框，经典中式风格 */
+            border: 4px double var(--china-red);
+            border-radius: 8px;
+            padding: 12px 30px;
+            box-shadow: 0 4px 15px rgba(185, 28, 28, 0.15);
+            /* 字体设置 */
+            font-family: 'Noto Serif SC', serif;
+            color: var(--china-red);
+            font-weight: 700;
+            text-align: center;
+        }
+
+        /* 四角装饰 (简易回纹风格) */
+        .chinese-frame::before, .chinese-frame::after {
+            content: '';
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border: 2px solid var(--china-red);
+            transition: all 0.3s ease;
+        }
+
+        /* 左上角 */
+        .chinese-frame::before {
+            top: 4px;
+            left: 4px;
+            border-right: none;
+            border-bottom: none;
+        }
+
+        /* 右下角 */
+        .chinese-frame::after {
+            bottom: 4px;
+            right: 4px;
+            border-left: none;
+            border-top: none;
+        }
+
+        /* 额外的两个角用内部元素模拟 */
+        .corner-tr, .corner-bl {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border: 2px solid var(--china-red);
+        }
+        /* 右上角 */
+        .corner-tr {
+            top: 4px;
+            right: 4px;
+            border-left: none;
+            border-bottom: none;
+        }
+        /* 左下角 */
+        .corner-bl {
+            bottom: 4px;
+            left: 4px;
+            border-right: none;
+            border-top: none;
+        }
+        
+        /* 标题装饰 */
+        .title-decoration::before,
+        .title-decoration::after {
+            content: '🏮';
+            margin: 0 0.5rem;
+            font-size: 1.5rem;
+            vertical-align: middle;
+        }
+
+        /* Modal 动画 */
+        #ai-modal {
+            transition: opacity 0.2s ease-in-out;
+        }
+        #ai-modal.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        #ai-modal:not(.hidden) {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        
+        /* 加载动画 */
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 3px solid var(--uz-blue);
+            width: 24px;
+            height: 24px;
+            -webkit-animation: spin 1s linear infinite; /* Safari */
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="p-4 md:p-6 relative">
+
+    <!-- AI Modal (对话框) -->
+    <div id="ai-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 transform transition-all scale-100 border border-slate-100">
+            <div class="flex justify-between items-center mb-4">
+                <div class="flex items-center gap-2 text-[#0099B5]">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
+                    </svg>
+                    <h3 class="font-bold text-lg">AI Misol (Example)</h3>
+                </div>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-100">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            
+            <div id="modal-content" class="space-y-3 text-slate-700 ai-content min-h-[100px]">
+                <!-- AI 内容将显示在这里 -->
+            </div>
+
+            <div id="modal-loading" class="hidden flex flex-col items-center justify-center py-6">
+                <div class="loader mb-3"></div>
+                <p class="text-sm text-slate-500 font-medium animate-pulse">Jumla tuzilmoqda... (Generating...)</p>
+            </div>
+            
+            <div class="mt-4 pt-4 border-t border-slate-100 flex justify-end">
+                <button onclick="speakAiContent()" class="text-[#0099B5] hover:bg-cyan-50 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 14.142m-5.598-9.543a3 3 0 010 4.242M7 10v4h3l3.586 3.586a2 2 0 002.414.586V5.828a2 2 0 00-2.414.586L10 10H7z" />
+                    </svg>
+                    Eshitish
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 顶部标题 -->
+    <header class="text-center mb-10 py-6 relative">
+        <!-- 顶部大标题 -->
+        <div class="flex items-center justify-center gap-3 mb-6">
+            <div class="w-12 h-12 rounded-full bg-[#b91c1c] flex items-center justify-center text-white font-bold text-2xl shadow-lg border-4 border-[#FFD700]">汉</div>
+            <h1 class="text-3xl md:text-4xl font-extrabold text-slate-800 tracking-tight title-decoration">HSK2 Yangi So'zlar</h1>
+        </div>
+        
+        <!-- 突出显示的副标题 (中式单色框) -->
+        <div class="relative z-10">
+            <div class="chinese-frame">
+                <!-- 额外的角装饰 -->
+                <div class="corner-tr"></div>
+                <div class="corner-bl"></div>
+                
+                <p id="subtitle-text" class="text-xl md:text-2xl tracking-wide leading-relaxed">
+                    Dilfuza Kāng lǎo shī bilan xitoy tilini o'rganmiz
+                </p>
+            </div>
+        </div>
+
+        <!-- 装饰性祥云 -->
+        <div class="absolute top-0 left-0 opacity-15 pointer-events-none">
+             <svg width="100" height="60" viewBox="0 0 100 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M20 20C20 8.9543 28.9543 0 40 0C51.0457 0 60 8.9543 60 20V40C60 51.0457 51.0457 60 40 60C28.9543 60 20 51.0457 20 40H0V20H20Z" fill="#b91c1c"/>
+                <path d="M60 20C60 8.9543 68.9543 0 80 0C91.0457 0 100 8.9543 100 20V40C100 51.0457 91.0457 60 80 60C68.9543 60 60 51.0457 60 40V20Z" fill="#b91c1c"/>
+            </svg>
+        </div>
+        <div class="absolute bottom-0 right-0 opacity-15 pointer-events-none transform rotate-180">
+             <svg width="100" height="60" viewBox="0 0 100 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M20 20C20 8.9543 28.9543 0 40 0C51.0457 0 60 8.9543 60 20V40C60 51.0457 51.0457 60 40 60C28.9543 60 20 51.0457 20 40H0V20H20Z" fill="#b91c1c"/>
+                <path d="M60 20C60 8.9543 68.9543 0 80 0C91.0457 0 100 8.9543 100 20V40C100 51.0457 91.0457 60 80 60C68.9543 60 60 51.0457 60 40V20Z" fill="#b91c1c"/>
+            </svg>
+        </div>
+
+    </header>
+
+    <!-- 网格容器 -->
+    <div id="grid-app" class="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 pb-20 relative z-10">
+        <!-- 卡片将通过 JS 插入到这里 -->
+    </div>
+
+    <!-- 底部说明 -->
+    <div class="text-center mt-12 text-slate-500 text-sm pb-8 border-t border-red-100 pt-6 mx-auto max-w-lg relative z-10">
+        Jami so'zlar: <span id="total-count" class="font-bold text-[#b91c1c] text-lg">0</span>
+    </div>
+
+    <script>
+        // API Key Setup
+        const apiKey = ""; // The runtime environment will provide the key automatically.
+
+        // HSK 2 数据源 (Based on Hsk2 sozlari uzbek tilida.pdf)
+        const vocabData = [
+            { zh: "吧", py: "ba", uz: "Buyruq/So'roq qo'shimchasi", icon: "❓" },
+            { zh: "白", py: "bái", uz: "Oq rang", icon: "⚪" },
+            { zh: "帮助", py: "bāngzhù", uz: "Yordam", icon: "🤝" },
+            { zh: "报纸", py: "bàozhǐ", uz: "Gazeta", icon: "📰" },
+            { zh: "比", py: "bǐ", uz: "Nisbatan", icon: "⚖️" },
+            { zh: "别", py: "bié", uz: "Boshqa", icon: "🛑" },
+            { zh: "百", py: "bǎi", uz: "Yuz (100)", icon: "💯" },
+            { zh: "宾馆", py: "bīnguǎn", uz: "Mehmonxona", icon: "🏨" },
+            { zh: "长", py: "cháng", uz: "Uzun", icon: "📏" },
+            { zh: "唱歌", py: "chànggē", uz: "Qo'shiq aytish", icon: "🎤" },
+            { zh: "出", py: "chū", uz: "Chiqmoq", icon: "🚪" },
+            { zh: "穿", py: "chuān", uz: "Kiymoq", icon: "👕" },
+            { zh: "次", py: "cì", uz: "Marta", icon: "🔄" },
+            { zh: "从", py: "cóng", uz: "Dan", icon: "➡" },
+            { zh: "错", py: "cuò", uz: "Xato", icon: "❌" },
+            { zh: "打篮球", py: "dǎ lánqiú", uz: "Basketbol", icon: "🏀" },
+            { zh: "大家", py: "dàjiā", uz: "Hamma", icon: "👨‍👩‍👧‍👦" },
+            { zh: "到", py: "dào", uz: "Yetib kelmoq", icon: "🏁" },
+            { zh: "得", py: "de", uz: "(Fe'l darajasi)", icon: "🉐" },
+            { zh: "等", py: "děng", uz: "Kutmoq", icon: "⏳" },
+            { zh: "弟弟", py: "dìdi", uz: "Uka", icon: "👦" },
+            { zh: "第一", py: "dìyī", uz: "Birinchi", icon: "🥇" },
+            { zh: "懂", py: "dǒng", uz: "Tushunmoq", icon: "💡" },
+            { zh: "对", py: "duì", uz: "To'g'ri", icon: "✔️" },
+            { zh: "房间", py: "fángjiān", uz: "Xona", icon: "🏠" },
+            { zh: "非常", py: "fēicháng", uz: "Juda", icon: "👍" },
+            { zh: "服务员", py: "fúwùyuán", uz: "Ofitsiant", icon: "🤵" },
+            { zh: "高", py: "gāo", uz: "Baland", icon: "🦒" },
+            { zh: "告诉", py: "gàosu", uz: "Aytmoq", icon: "🗣️" },
+            { zh: "哥哥", py: "gēge", uz: "Aka", icon: "🧑" },
+            { zh: "给", py: "gěi", uz: "Bermoq", icon: "🤲" },
+            { zh: "公共汽车", py: "gōnggòng qìchē", uz: "Avtobus", icon: "🚌" },
+            { zh: "贵", py: "guì", uz: "Qimmat", icon: "💰" },
+            { zh: "过", py: "guo", uz: "O'tgan", icon: "🗓️" },
+            { zh: "还", py: "hái", uz: "Yana", icon: "➕" },
+            { zh: "孩子", py: "háizi", uz: "Bola", icon: "👶" },
+            { zh: "好吃", py: "hǎochī", uz: "Mazali", icon: "😋" },
+            { zh: "黑", py: "hēi", uz: "Qora", icon: "⚫" },
+            { zh: "红", py: "hóng", uz: "Qizil", icon: "🔴" },
+            { zh: "火车站", py: "huǒchēzhàn", uz: "Vokzal", icon: "🚉" },
+            { zh: "机场", py: "jīchǎng", uz: "Aeroport", icon: "✈️" },
+            { zh: "鸡蛋", py: "jīdàn", uz: "Tuxum", icon: "🥚" },
+            { zh: "件", py: "jiàn", uz: "(Kiyim uchun)", icon: "👔" },
+            { zh: "教室", py: "jiàoshì", uz: "Sinfxona", icon: "🏫" },
+            { zh: "姐姐", py: "jiějie", uz: "Opa", icon: "👩" },
+            { zh: "介绍", py: "jièshào", uz: "Tanishtirish", icon: "🤝" },
+            { zh: "进", py: "jìn", uz: "Kirmoq", icon: "🚶" },
+            { zh: "近", py: "jìn", uz: "Yaqin", icon: "📍" },
+            { zh: "就", py: "jiù", uz: "Aynan", icon: "🎯" },
+            { zh: "觉得", py: "juéde", uz: "Menimcha", icon: "🤔" },
+            { zh: "咖啡", py: "kāfēi", uz: "Qahva", icon: "☕" },
+            { zh: "开始", py: "kāishǐ", uz: "Boshlamoq", icon: "▶️" },
+            { zh: "考试", py: "kǎoshì", uz: "Imtihon", icon: "📝" },
+            { zh: "可能", py: "kěnéng", uz: "Ehtimol", icon: "🎲" },
+            { zh: "可以", py: "kěyǐ", uz: "Mumkin", icon: "🆗" },
+            { zh: "课", py: "kè", uz: "Dars", icon: "📚" },
+            { zh: "快", py: "kuài", uz: "Tez", icon: "🐆" },
+            { zh: "快乐", py: "kuàilè", uz: "Xursand", icon: "😊" },
+            { zh: "离", py: "lí", uz: "Dan (masofa)", icon: "↔️" },
+            { zh: "两", py: "liǎng", uz: "Ikki", icon: "2️⃣" },
+            { zh: "零", py: "líng", uz: "Nol", icon: "0️⃣" },
+            { zh: "路", py: "lù", uz: "Yo'l", icon: "🛣️" },
+            { zh: "旅游", py: "lǚyóu", uz: "Sayohat", icon: "🧳" },
+            { zh: "卖", py: "mài", uz: "Sotmoq", icon: "🛒" },
+            { zh: "慢", py: "màn", uz: "Sekin", icon: "🐢" },
+            { zh: "忙", py: "máng", uz: "Band", icon: "😫" },
+            { zh: "每", py: "měi", uz: "Har", icon: "🔁" },
+            { zh: "妹妹", py: "mèimei", uz: "Singil", icon: "👧" },
+            { zh: "门", py: "mén", uz: "Eshik", icon: "🚪" },
+            { zh: "面条", py: "miàntiáo", uz: "Makaron", icon: "🍜" },
+            { zh: "男", py: "nán", uz: "Erkak", icon: "♂️" },
+            { zh: "您", py: "nín", uz: "Siz (Hurmat)", icon: "🙇" },
+            { zh: "牛奶", py: "niúnǎi", uz: "Sut", icon: "🥛" },
+            { zh: "女", py: "nǚ", uz: "Ayol", icon: "♀️" },
+            { zh: "旁边", py: "pángbiān", uz: "Yonida", icon: "👉" },
+            { zh: "跑步", py: "pǎobù", uz: "Yugurmoq", icon: "🏃" },
+            { zh: "便宜", py: "piányi", uz: "Arzon", icon: "🏷️" },
+            { zh: "票", py: "piào", uz: "Chipta", icon: "🎫" },
+            { zh: "妻子", py: "qīzi", uz: "Xotin", icon: "💍" },
+            { zh: "起床", py: "qǐchuáng", uz: "O'rnidan turmoq", icon: "🛌" },
+            { zh: "千", py: "qiān", uz: "Ming (1000)", icon: "1️⃣0️⃣0️⃣0️⃣" },
+            { zh: "铅笔", py: "qiānbǐ", uz: "Qalam", icon: "✏️" },
+            { zh: "晴", py: "qíng", uz: "Quyoshli", icon: "☀️" },
+            { zh: "去年", py: "qùnián", uz: "O'tgan yili", icon: "📅" },
+            { zh: "让", py: "ràng", uz: "Ruxsat bermoq", icon: "👮" },
+            { zh: "日", py: "rì", uz: "Kun", icon: "📆" },
+            { zh: "上班", py: "shàngbān", uz: "Ishga borish", icon: "🏢" },
+            { zh: "身体", py: "shēntǐ", uz: "Sog'liq/Tana", icon: "💪" },
+            { zh: "生病", py: "shēngbìng", uz: "Kasal bo'lmoq", icon: "🤒" },
+            { zh: "生日", py: "shēngrì", uz: "Tug'ilgan kun", icon: "🎂" },
+            { zh: "事情", py: "shìqing", uz: "Ish/Hodisa", icon: "📋" },
+            { zh: "手表", py: "shǒubiǎo", uz: "Qo'l soat", icon: "⌚" },
+            { zh: "时间", py: "shíjiān", uz: "Vaqt", icon: "🕰️" },
+            { zh: "手机", py: "shǒujī", uz: "Telefon", icon: "📱" },
+            { zh: "说话", py: "shuōhuà", uz: "Gaplashmoq", icon: "🗣️" },
+            { zh: "送", py: "sòng", uz: "Sovg'a qilmoq", icon: "🎁" },
+            { zh: "虽然", py: "suīrán", uz: "Biroq", icon: "⚖️" },
+            { zh: "它", py: "tā", uz: "U (Narsa)", icon: "🐾" },
+            { zh: "踢足球", py: "tī zúqiú", uz: "Futbol o'ynash", icon: "⚽" },
+            { zh: "题", py: "tí", uz: "Savol", icon: "❓" },
+            { zh: "跳舞", py: "tiàowǔ", uz: "Raqsga tushish", icon: "💃" },
+            { zh: "外", py: "wài", uz: "Tashqari", icon: "🏞️" },
+            { zh: "完", py: "wán", uz: "Tugamoq", icon: "🏁" },
+            { zh: "玩", py: "wán", uz: "O'ynamoq", icon: "🎮" },
+            { zh: "晚上", py: "wǎnshang", uz: "Kechqurun", icon: "🌃" },
+            { zh: "往", py: "wǎng", uz: "Tomonga", icon: "⤴️" },
+            { zh: "为什么", py: "wèishénme", uz: "Nima uchun", icon: "🤷" },
+            { zh: "问", py: "wèn", uz: "So'ramoq", icon: "🙋" },
+            { zh: "问题", py: "wèntí", uz: "Muammo/Savol", icon: "🧩" },
+            { zh: "西瓜", py: "xīguā", uz: "Tarvuz", icon: "🍉" },
+            { zh: "希望", py: "xīwàng", uz: "Umid qilmoq", icon: "🙏" },
+            { zh: "小时", py: "xiǎoshí", uz: "Soat (Vaqt)", icon: "⌛" },
+            { zh: "笑", py: "xiào", uz: "Kulmoq", icon: "😄" },
+            { zh: "新", py: "xīn", uz: "Yangi", icon: "🆕" },
+            { zh: "姓", py: "xìng", uz: "Familiya", icon: "📛" },
+            { zh: "休息", py: "xiūxi", uz: "Dam olmoq", icon: "🛋️" },
+            { zh: "雪", py: "xuě", uz: "Qor", icon: "❄️" },
+            { zh: "颜色", py: "yánsè", uz: "Rang", icon: "🎨" },
+            { zh: "眼睛", py: "yǎnjing", uz: "Ko'z", icon: "👁️" },
+            { zh: "羊肉", py: "yángròu", uz: "Qo'y go'shti", icon: "🍖" },
+            { zh: "药", py: "yào", uz: "Dori", icon: "💊" },
+            { zh: "要", py: "yào", uz: "Kerak/Xohlamoq", icon: "🤲" },
+            { zh: "也", py: "yě", uz: "Ham", icon: "➕" },
+            { zh: "一起", py: "yīqǐ", uz: "Birgalikda", icon: "👫" },
+            { zh: "一下", py: "yīxià", uz: "Bir oz", icon: "🤏" },
+            { zh: "已经", py: "yǐjīng", uz: "Allaqachon", icon: "🕰️" },
+            { zh: "意思", py: "yìsi", uz: "Ma'no", icon: "📖" },
+            { zh: "因为", py: "yīnwèi", uz: "Chunki", icon: "💡" },
+            { zh: "阴", py: "yīn", uz: "Bulutli", icon: "☁️" },
+            { zh: "游泳", py: "yóuyǒng", uz: "Suzmoq", icon: "🏊" },
+            { zh: "右边", py: "yòubian", uz: "O'ng tomon", icon: "➡️" },
+            { zh: "鱼", py: "yú", uz: "Baliq", icon: "🐟" },
+            { zh: "远", py: "yuǎn", uz: "Uzoq", icon: "🔭" },
+            { zh: "运动", py: "yùndòng", uz: "Sport", icon: "🏋️" },
+            { zh: "再", py: "zài", uz: "Yana", icon: "🔁" },
+            { zh: "早上", py: "zǎoshang", uz: "Ertalab", icon: "🌅" },
+            { zh: "丈夫", py: "zhàngfu", uz: "Er", icon: "🤵" },
+            { zh: "找", py: "zhǎo", uz: "Qidirmoq", icon: "🔍" },
+            { zh: "着", py: "zhe", uz: "(Holat)", icon: "📌" },
+            { zh: "真", py: "zhēn", uz: "Rost", icon: "✅" },
+            { zh: "正在", py: "zhèngzài", uz: "Ayni paytda", icon: "⏳" },
+            { zh: "知道", py: "zhīdào", uz: "Bilmoq", icon: "🧠" },
+            { zh: "准备", py: "zhǔnbèi", uz: "Tayyorlanmoq", icon: "🎒" },
+            { zh: "走", py: "zǒu", uz: "Yurmoq", icon: "🚶" },
+            { zh: "最", py: "zuì", uz: "Eng", icon: "🔝" },
+            { zh: "左边", py: "zuǒbian", uz: "Chap tomon", icon: "⬅️" }
+        ];
+
+        const gridApp = document.getElementById('grid-app');
+        const totalCountEl = document.getElementById('total-count');
+        const modal = document.getElementById('ai-modal');
+        const modalContent = document.getElementById('modal-content');
+        const modalLoading = document.getElementById('modal-loading');
+
+        // Initializatsiya
+        function init() {
+            totalCountEl.textContent = vocabData.length;
+            renderGrid(vocabData);
+            adjustSubtitleKerning(); // Bo'shliqni to'g'irlash
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.getVoices();
+            }
+        }
+
+        function adjustSubtitleKerning() {
+            const subtitleEl = document.getElementById('subtitle-text');
+            if (subtitleEl) {
+                // 'o' va 'ʻ' orasidagi bo'shliqni qo'lda to'g'irlash
+                subtitleEl.innerHTML = subtitleEl.innerHTML.replace(
+                    /o'/g, 
+                    'o<span style="margin-left: -0.1em;">\'</span>'
+                );
+            }
+        }
+
+        // To'rni chizish
+        function renderGrid(data) {
+            gridApp.innerHTML = '';
+            
+            data.forEach((item) => {
+                const cardWrapper = document.createElement('div');
+                cardWrapper.className = 'card-container noselect';
+                
+                let fontSize = 80;
+                if (item.zh.length === 2) fontSize = 60;
+                if (item.zh.length === 3) fontSize = 45;
+                if (item.zh.length > 3) fontSize = 35;
+
+                // Haqiqiy rasm uchun Pollinations AI dan foydalanish
+                const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(item.key)}?width=300&height=200&nologo=true`;
+
+                cardWrapper.innerHTML = `
+                    <div class="card-inner" onclick="toggleFlip(this)">
+                        <!-- Old tomoni -->
+                        <div class="card-face card-front">
+                            <svg width="100%" height="100%" viewBox="0 0 300 225" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="150" cy="112" r="90" fill="#fee2e2" opacity="0.6" />
+                                <text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" 
+                                      font-family="'Noto Serif SC', sans-serif" font-weight="bold" font-size="${fontSize}" fill="#450a0a">
+                                    ${item.zh}
+                                </text>
+                                <text x="50%" y="85%" dominant-baseline="middle" text-anchor="middle" 
+                                      font-size="10" fill="#ef4444">Bosish</text>
+                            </svg>
+                            <button onclick="speakWord('${item.zh}', event)" class="absolute top-2 right-2 w-8 h-8 rounded-full bg-red-50 hover:bg-[#b91c1c] hover:text-white text-[#b91c1c] flex items-center justify-center transition-colors shadow-sm border border-red-100" aria-label="Listen">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                            </button>
+                        </div>
+
+                        <!-- Orqa tomoni -->
+                        <div class="card-face card-back relative group flex flex-col justify-center">
+                            <!-- Rasm maydoni -->
+                            <div class="real-image flex items-center justify-center text-6xl bg-gray-50 mt-16">
+                                ${item.icon}
+                            </div>
+                            
+                            <!-- Matn maydoni -->
+                            <div class="flex-1 flex flex-col justify-center items-center w-full bg-white pb-2">
+                                <div class="text-[#0099B5] font-bold text-xl mb-1 mt-2">${item.py}</div>
+                                <div class="text-[#1EB53A] font-bold text-lg uppercase px-2 leading-tight">${item.uz}</div>
+                            </div>
+
+                            <!-- Ovoz tugmasi -->
+                            <button onclick="speakWord('${item.zh}', event)" class="absolute bottom-2 right-2 w-8 h-8 rounded-full bg-green-50 hover:bg-[#1EB53A] hover:text-white text-[#1EB53A] flex items-center justify-center transition-colors shadow-sm border border-green-100">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                            </button>
+                            
+                            <!-- AI tugmasi (sehrli tayoqcha) -->
+                            <button onclick="generateAIExample('${item.zh}', '${item.py}', '${item.uz}', event)" class="absolute top-2 left-2 w-8 h-8 rounded-full bg-indigo-50 hover:bg-indigo-500 hover:text-white text-indigo-500 flex items-center justify-center transition-colors shadow-sm border border-indigo-100" title="AI Example">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                  <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                gridApp.appendChild(cardWrapper);
+            });
+        }
+
+        // Gemini AI chaqiruvi
+        async function generateAIExample(word, pinyin, uzbek, event) {
+            if (event) event.stopPropagation();
+            
+            // Modal va yuklanishni ko'rsatish
+            modal.classList.remove('hidden');
+            modalContent.innerHTML = '';
+            modalLoading.classList.remove('hidden');
+
+            const prompt = `Generate a very simple Chinese sentence (HSK2 level) using the word "${word}" (${pinyin}). 
+            Also provide Pinyin for the sentence and Uzbek translation.
+            Format exactly like this:
+            [Chinese Sentence]
+            [Pinyin]
+            [Uzbek Translation]
+            Do not add labels like "Chinese:" or "Pinyin:". Just the lines.`;
+
+            try {
+                // Qayta urinish mantiqi
+                const fetchWithRetry = async (url, options, retries = 3, backoff = 1000) => {
+                    try {
+                        const response = await fetch(url, options);
+                        if (!response.ok) {
+                            if (response.status === 429 && retries > 0) {
+                                await new Promise(r => setTimeout(r, backoff));
+                                return fetchWithRetry(url, options, retries - 1, backoff * 2);
+                            }
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        return await response.json();
+                    } catch (e) {
+                        if (retries > 0) {
+                            await new Promise(r => setTimeout(r, backoff));
+                            return fetchWithRetry(url, options, retries - 1, backoff * 2);
+                        }
+                        throw e;
+                    }
+                };
+
+                const responseData = await fetchWithRetry(
+                    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`,
+                    {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contents: [{ parts: [{ text: prompt }] }]
+                        })
+                    }
+                );
+
+                const text = responseData.candidates?.[0]?.content?.parts?.[0]?.text;
+                
+                if (text) {
+                    // Oddiy formatlash
+                    const lines = text.split('\n').filter(line => line.trim() !== '');
+                    let html = '';
+                    
+                    if (lines.length >= 1) html += `<div class="text-2xl text-slate-800 font-bold mb-1">${lines[0]}</div>`;
+                    if (lines.length >= 2) html += `<div class="text-lg text-[#0099B5] font-medium mb-3">${lines[1]}</div>`;
+                    if (lines.length >= 3) html += `<div class="text-base text-[#1EB53A] italic bg-green-50 p-2 rounded border border-green-100">${lines.slice(2).join(' ')}</div>`;
+                    
+                    // Agar AI chiqishi turlicha bo'lsa, zaxira formatlash
+                    if (lines.length === 0) html = `<p>${text}</p>`;
+
+                    modalContent.innerHTML = html;
+                } else {
+                    modalContent.innerHTML = `<p class="text-red-500">Kechirasiz, xatolik yuz berdi. (Sorry, error generating text.)</p>`;
+                }
+
+            } catch (error) {
+                console.error("AI Error:", error);
+                modalContent.innerHTML = `<p class="text-red-500">Internet connection error or AI limit reached.</p>`;
+            } finally {
+                modalLoading.classList.add('hidden');
+            }
+        }
+
+        // AI yaratgan matnni o'qish
+        function speakAiContent() {
+            const chineseTextDiv = modalContent.querySelector('.text-2xl');
+            if (chineseTextDiv) {
+                const text = chineseTextDiv.innerText;
+                if ('speechSynthesis' in window) {
+                    window.speechSynthesis.cancel();
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.lang = 'zh-CN';
+                    utterance.rate = 0.8;
+                    const voices = window.speechSynthesis.getVoices();
+                    const zhVoice = voices.find(voice => voice.lang.includes('zh') || voice.lang.includes('CN'));
+                    if (zhVoice) utterance.voice = zhVoice;
+                    window.speechSynthesis.speak(utterance);
+                }
+            }
+        }
+
+        function toggleFlip(element) {
+            element.classList.toggle('is-flipped');
+        }
+
+        function speakWord(text, event) {
+            if (event) event.stopPropagation();
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const cleanText = text.replace(/[^\u4e00-\u9fa5]/g, '');
+                const utterance = new SpeechSynthesisUtterance(cleanText);
+                utterance.lang = 'zh-CN';
+                utterance.rate = 0.8; 
+                const voices = window.speechSynthesis.getVoices();
+                const zhVoice = voices.find(voice => voice.lang.includes('zh') || voice.lang.includes('CN'));
+                if (zhVoice) utterance.voice = zhVoice;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function closeModal() {
+            modal.classList.add('hidden');
+        }
+
+        // Tashqariga bosilganda modalni yopish
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) closeModal();
+        });
+
+        // Boshlash
+        init();
+
+    </script>
+</body>
+</html>
