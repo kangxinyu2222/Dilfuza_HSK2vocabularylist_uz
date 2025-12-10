@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>乌兹别克语阅读练习 (O'zbek Tili)</title>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        /* Custom Scrollbar for nicer look */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+    </style>
+</head>
+<body class="bg-gray-200">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // --- Icons (Implemented as SVG components to avoid external dependencies) ---
+        const Play = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+        );
+        const Pause = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+        );
+        const BookOpen = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+        );
+        const Volume2 = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+        );
+        const Globe = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+        );
+        const Menu = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        );
+        const Loader2 = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
+        );
+        const Settings = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        );
+        const X = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        );
+
+        // --- Data: Lessons 7-18 ---
+        const lessons = [
+            {
+                id: 7,
+                title: "7-dars: Bizning rasmimiz",
+                titleCn: "第7课：我们的照片",
+                content: [
+                { uz: "Mana bu bizning oilaviy rasmimiz.", cn: "这就是我们的家庭照片。" },
+                { uz: "Bu mening oilam.", cn: "这是我的家庭。" },
+                { uz: "Bu mening otam, uning ismi Aziz.", cn: "这是我的父亲，他的名字叫阿齐兹。" },
+                { uz: "Bu mening onam, uning ismi Saida.", cn: "这是我的母亲，她的名字叫赛达。" },
+                { uz: "Onam juda chiroyli.", cn: "我的母亲非常漂亮。" },
+                { uz: "Bu esa opam va men.", cn: "这是我的姐姐和我。" },
+                { uz: "Opamning ismi Laylo, u talaba.", cn: "我姐姐的名字叫莱洛，她是大学生。" },
+                { uz: "Mening ismim esa Ra'no.", cn: "而我的名字叫拉诺。" }
+                ]
+            },
+            {
+                id: 8,
+                title: "8-dars: Bizning sinfimiz",
+                titleCn: "第8课：我们的班级",
+                content: [
+                { uz: "Sinfimizdagi talabalar juda ajoyib.", cn: "我们班的学生非常棒。" },
+                { uz: "Temur oʻzbek, toshkentlik.", cn: "帖木儿是乌兹别克人，塔什干人。" },
+                { uz: "Baxtiyor xorazmlik, Xivadan.", cn: "巴赫季约尔是花剌子模人，来自希瓦。" },
+                { uz: "Zulayho tojik, samarqandlik.", cn: "祖莱霍是塔吉克人，撒马尔罕人。" },
+                { uz: "Natasha Kim koreys, koreyalik.", cn: "娜塔莎·金是朝鲜族，韩国人。" },
+                { uz: "Armida Babayan arman, Armanistondan.", cn: "阿尔米达·巴巴扬是亚美尼亚人，来自亚美尼亚。" },
+                { uz: "Sulaymon ozarbayjonlik, Bakudan.", cn: "苏莱曼是阿塞拜疆人，来自巴库。" },
+                { uz: "Nina va Sasha Ivanovlar rus, moskvalik.", cn: "尼娜和萨沙·伊万诺夫是俄罗斯人，莫斯科人。" },
+                { uz: "Damir Urazayev tatar, Qrimdan.", cn: "达米尔·乌拉扎耶夫是鞑靼人，来自克里米亚。" },
+                { uz: "Men esa Chen Na, xitoylikman, Pekin shahridan.", cn: "而我是陈娜，中国人，来自北京市。" },
+                { uz: "Biz juda baxtli talabalarmiz!", cn: "我们是非常幸福的学生！" }
+                ]
+            },
+            {
+                id: 9,
+                title: "9-dars: Bizning ko'cha",
+                titleCn: "第9课：我们的街道",
+                content: [
+                { uz: "Men Jonguansun ko'chasida yashayman.", cn: "我住在中关村大街。" },
+                { uz: "Ko'chamiz juda chiroyli, katta va keng.", cn: "我们的街道非常漂亮、很大且宽敞。" },
+                { uz: "Ko'chamizda Bambuk bog'i, Davlat kutubxonasi, 'Tian zuo' bozori, kinoteatr, supermarket, 'Do'stlik' restorani va ko'p universitetlar bor.", cn: "我们街上有紫竹院公园、国家图书馆、'天作'市场、电影院、超市、'友谊'餐厅和许多大学。" },
+                { uz: "Bizning universitetimiz ham shu ko'chada joylashgan.", cn: "我们的大学也坐落在这条街上。" },
+                { uz: "Kunduzi ko'chamizda odamlar va mashinalar juda ko'p.", cn: "白天我们街上人和车非常多。" },
+                { uz: "Kechqurun esa turli xil chiroqlar yonadi, shunda ko'chamiz juda chiroyli boʻladi.", cn: "晚上各种各样的灯亮起来，这样一来我们的街道变得非常美丽。" },
+                { uz: "Men koʻchamizni yaxshi ko'raman.", cn: "我喜欢我们的街道。" }
+                ]
+            },
+            {
+                id: 10,
+                title: "10-dars: Bugun havo juda yaxshi",
+                titleCn: "第10课：今天天气很好",
+                content: [
+                { uz: "Bugun havo juda yaxshi.", cn: "今天天气非常好。" },
+                { uz: "Bizning qo'shnimiz Alimovlar oilasi bog'da dam olishyapti.", cn: "我们的邻居阿里莫夫一家正在花园里休息。" },
+                { uz: "Jalil aka Alimov gul o'tqazyapti.", cn: "贾利勒大哥（阿里莫夫）正在种花。" },
+                { uz: "Laylo opa gazeta oʻqiyapti va sharbat ichyapti.", cn: "莱洛大姐正在读报纸和喝果汁。" },
+                { uz: "Abror futbol o'ynayapti.", cn: "阿布罗尔正在踢足球。" },
+                { uz: "G'ayrat ochiq havoda maza qilib uxlayapti.", cn: "盖拉特正在户外美美地睡觉。" },
+                { uz: "Alimovlar oilasi behad xursand.", cn: "阿里莫夫一家无比高兴。" },
+                { uz: "Lekin bizning oilamiz juda band.", cn: "但是我们家很忙。" },
+                { uz: "Onam oshxonani tozalayapti.", cn: "妈妈正在打扫厨房。" },
+                { uz: "Otam va akam mashinalarini yuvishyapti.", cn: "爸爸和哥哥正在洗他们的车。" },
+                { uz: "Opam vannaxonani tozalayapti.", cn: "姐姐正在打扫浴室。" },
+                { uz: "Ukam itiga ovqat beryapti.", cn: "弟弟正在给他的狗喂食。" }
+                ]
+            },
+            {
+                id: 11,
+                title: "11-dars: Mening oilam",
+                titleCn: "第11课：我的家庭",
+                content: [
+                { uz: "Oilam to'rt kishidan iborat: otam, onam, singlim va men.", cn: "我的家庭由四口人组成：父亲、母亲、妹妹和我。" },
+                { uz: "Biz qishloqda yashaymiz.", cn: "我们生活在农村。" },
+                { uz: "Oilam doim baxt bilan to'la.", cn: "我的家庭总是充满幸福。" },
+                { uz: "Otam 50 yoshda, onam esa 48 yoshda.", cn: "父亲50岁，母亲48岁。" },
+                { uz: "Ular dehqonchilik bilan shug'ullanadilar.", cn: "他们从事农业。" },
+                { uz: "Ular ko'p vaqt dalada ishlaydilar.", cn: "他们很多时间在田里工作。" },
+                { uz: "Otam va onam juda mehribon odamlar.", cn: "父亲和母亲是非常慈祥的人。" },
+                { uz: "Ota-onam dalada ishlaganda, singlim Nodira uyda ovqat tayyorlaydi.", cn: "父母在田里工作的时候，妹妹诺迪拉在家里做饭。" },
+                { uz: "Nodira oʻquvchi, 17 yoshda, u o'rta maktabning 10-sinfida o'qiydi.", cn: "诺迪拉是学生，17岁，她在中学读10年级。" },
+                { uz: "Men esa 19 yoshdaman, talabaman.", cn: "而我19岁，是大学生。" },
+                { uz: "Men ota-onam va singlimni sog'inaman.", cn: "我想念我的父母和妹妹。" }
+                ]
+            },
+            {
+                id: 12,
+                title: "12-dars: Mening ish kunim",
+                titleCn: "第12课：我的工作日",
+                content: [
+                { uz: "Men har kuni tongda soat yettida uyg'onaman, yuvinaman va kiyinaman.", cn: "我每天早上七点起床，洗漱并穿衣服。" },
+                { uz: "Keyin oshxonaga boraman va nonushta qilaman.", cn: "然后去厨房吃早饭。" },
+                { uz: "Bizning darslarimiz, odatda, soat sakkizda boshlanadi.", cn: "我们的课通常在八点开始。" },
+                { uz: "Har kuni tushgacha to'rt soat o'qiymiz.", cn: "每天中午前我们学习四个小时。" },
+                { uz: "Biz darslarda yangi so'zlar o'rganamiz, mashq yozamiz, matn o'qiymiz va tarjima qilamiz.", cn: "我们在课上学习生词，写练习，读课文并翻译。" },
+                { uz: "Soat o'n ikkida tanaffus bo'ladi.", cn: "十二点休息。" },
+                { uz: "Men do'stlarim bilan oshxonaga borib tushlik qilaman.", cn: "我和朋友们去食堂吃午饭。" },
+                { uz: "Kechki payt esa mustaqil shug'ullanaman, dars tayyorlayman.", cn: "晚上我独立学习，预习功课。" },
+                { uz: "Kechki soat o'n bir yarimlarda charchab, uxlashga yotaman.", cn: "晚上十一点半左右我累了，就去睡觉。" }
+                ]
+            },
+            {
+                id: 13,
+                title: "13-dars: Bizning universitetimiz",
+                titleCn: "第13课：我们的大学",
+                content: [
+                { uz: "Men Markaziy Millatlar universitetida o‘qiyman.", cn: "我在中央民族大学学习。" },
+                { uz: "U Pekin shahridagi mashhur universitetlardan biri.", cn: "它是北京市著名的大学之一。" },
+                { uz: "Markaziy Millatlar universiteti 1941-yil sentyabrda tashkil etilgan.", cn: "中央民族大学成立于1941年9月。" },
+                { uz: "Hozir universitetda turli fakultetlar mavjud.", cn: "现在大学里有各种各样的学院。" },
+                { uz: "Bizning universitetimizda yigirma mingdan ko‘p talaba o‘qiydi va yashaydi.", cn: "在我们大学里有两万多名学生在学习和生活。" },
+                { uz: "Men chet tillari fakultetida o‘qiyman, rus va o‘zbek tillarini o‘rganaman.", cn: "我在外语学院学习，学习俄语和乌兹别克语。" },
+                { uz: "Universitetda zamonaviy o‘quv binolari, katta kutubxona, toza oshxonalar, qulay supermarket va pochta bor.", cn: "大学里有现代化的教学楼、大图书馆、干净的食堂、便利的超市和邮局。" },
+                { uz: "Universitetimiz xuddi oromgohga o‘xshaydi, unda ko‘p daraxtlar va gullar o‘sadi.", cn: "我们的大学就像公园一样，里面生长着许多树木和花草。" },
+                { uz: "Universitet – mening ikkinchi uyim.", cn: "大学是我的第二个家。" },
+                { uz: "Men universitetimizni juda yaxshi ko‘raman.", cn: "我非常喜欢我们的大学。" }
+                ]
+            },
+            {
+                id: 14,
+                title: "14-dars: Alisher ishga kech qoldi",
+                titleCn: "第14课：阿利舍尔上班迟到了",
+                content: [
+                { uz: "Alisher har kuni soat yettida uyg‘onadi.", cn: "阿利舍尔每天七点醒来。" },
+                { uz: "Yigirma daqiqa sport bilan shug‘ullanadi.", cn: "进行二十分钟的体育锻炼。" },
+                { uz: "Dush qabul qiladi, kiyinadi. Yaxshilab nonushta qiladi.", cn: "洗澡，穿衣服。好好地吃早饭。" },
+                { uz: "Uydan soat sakkizda chiqadi. Ishga ko‘pincha mashinasida ketadi.", cn: "八点从家里出发。通常开车去上班。" },
+                { uz: "Bugun Alisher yettida uyg‘onmadi, soat oltida turdi.", cn: "今天阿利舍尔没在七点醒，六点就起了。" },
+                { uz: "Ertalabki badantarbiyani yigirma daqiqa emas, faqat besh daqiqa qildi.", cn: "早操没做二十分钟，只做了五分钟。" },
+                { uz: "Uzoq vaqt dush qabul qilmadi, tez-tez yuvindi.", cn: "没洗很久的澡，匆匆洗了一下。" },
+                { uz: "Alisher bugun bir soat erta chiqdi. Chunki mashinasi buzuq edi.", cn: "阿利舍尔今天早出门了一个小时。因为他的车坏了。" },
+                { uz: "Endi ishga avtobusda ketishi kerak.", cn: "现在得坐公交车去上班。" },
+                { uz: "Tuman markazigacha ikki kilometr yurdi. O‘n besh daqiqa avtobus kutdi.", cn: "走到区中心走了两公里。等了十五分钟公交车。" },
+                { uz: "Avtobusdan tushgandan keyin yana uch kilometr piyoda yurdi.", cn: "下车后又走了三公里。" },
+                { uz: "Ammo ishga o‘z vaqtida kelmadi. U qirq daqiqa kech qoldi.", cn: "但是没按时到岗。他迟到了四十分钟。" },
+                { uz: "Bechora Alisher, ishga o‘z vaqtida borish uchun ko‘p harakat qildi, ammo bari-bir kech qoldi.", cn: "可怜的阿利舍尔，为了按时上班很努力了，但还是迟到了。" }
+                ]
+            },
+            {
+                id: 15,
+                title: "15-dars: Laylo",
+                titleCn: "第15课：莱洛",
+                content: [
+                { uz: "Laylo Angliyada tug‘ildi. U yerda kichik bir shaharda o‘sdi.", cn: "莱洛出生在英国。她在那里一个小城市长大。" },
+                { uz: "Olti yoshida maktabga bordi. Faqat litseyga bora olmadi.", cn: "六岁上学。只是没能上高中。" },
+                { uz: "Chunki oilasi kambag‘al edi. O‘n besh yoshida ishga kirdi.", cn: "因为家里很穷。十五岁就开始工作了。" },
+                { uz: "Laylo o‘n yetti yoshga kirganda uning oilasi O‘zbekistonga ko‘chib keldi.", cn: "莱洛十七岁时，全家搬到了乌兹别克斯坦。" },
+                { uz: "Laylo Angliyadan ketganidan bir oz xafa edi. Ammo endi u o‘z vatanida edi.", cn: "莱洛对离开英国感到有点难过。但现在她在自己的祖国了。" },
+                { uz: "Laylo oldin o‘zbek tilida yaxshi gapira olmadi.", cn: "莱洛以前乌兹别克语说得不好。" },
+                { uz: "Kunduzlari bir fabrikada ishladi. Kechalari esa o‘zbek tilini o‘rgandi.", cn: "白天在一家工厂工作。晚上学习乌兹别克语。" },
+                { uz: "Hozir u o‘zbek tilida juda yaxshi gaplashadi.", cn: "现在她乌兹别克语说得很好。" },
+                { uz: "Kechalari kompyuterni o‘rganmoqda. Laylo kotiba bo‘lmoqchi.", cn: "晚上正在学电脑。莱洛想当秘书。" },
+                { uz: "Bo‘sh vaqtida Laylo sport bilan shug‘ullandi.", cn: "空闲时间莱洛从事体育锻炼。" },
+                { uz: "Endi Layloga O‘zbekiston juda yoqdi. Chunki u hozir baxtli va do‘stlari ko‘p.", cn: "现在莱洛非常喜欢乌兹别克斯坦。因为她现在很幸福，朋友很多。" },
+                { uz: "Laylo kelajakka umid bilan qaraydi.", cn: "莱洛充满希望地展望未来。" }
+                ]
+            },
+            {
+                id: 16,
+                title: "16-dars: Oʻzbek tili",
+                titleCn: "第16课：乌兹别克语",
+                content: [
+                { uz: "Men hozir o‘zbek tilini o‘rganyapman. O‘zbek tili men uchun juda qiziqarli.", cn: "我现在正在学习乌兹别克语。乌兹别克语对我来说很有趣。" },
+                { uz: "Biz o‘zbek tili darsida yangi so‘zlar o‘rganamiz, matn o‘qiymiz va tarjima qilamiz.", cn: "我们在乌兹别克语课上学习生词，读课文并翻译。" },
+                { uz: "O‘qituvchi bizga savol beradi, biz javob beramiz.", cn: "老师向我们提问，我们回答。" },
+                { uz: "Darsda ba’zan turli o‘yinlar o‘ynaymiz, musobaqa qilamiz.", cn: "课上有时我们玩各种游戏，进行比赛。" },
+                { uz: "O‘qituvchi bilan o‘zbekcha filmlar tomosha qilamiz, musiqa tinglaymiz.", cn: "我们和老师一起看乌兹别克语电影，听音乐。" },
+                { uz: "Men o‘zbek tilini o‘rganish bilan birga O‘zbekiston davlati bilan tanishdim.", cn: "我在学习乌兹别克语的同时也了解了乌兹别克斯坦国家。" },
+                { uz: "O‘zbek xalqi tarixi, madaniyati va san’ati haqida ko‘p qiziqarli ma’lumotlarga ega bo‘ldim.", cn: "我获得了许多关于乌兹别克人民历史、文化和艺术的有趣信息。" },
+                { uz: "Hozir men kundan-kunga o‘zbek tili bilan ko‘proq shug‘ullanishni xohlayman.", cn: "现在我想每天更多地练习乌兹别克语。" },
+                { uz: "Albatta, til o‘rganish oson emas. Menda ham ba’zi qiyinchiliklar bo‘ldi.", cn: "当然，学习语言不容易。我也遇到了一些困难。" },
+                { uz: "Men o‘zbek tilini yaxshilab o‘rganib, kelajakda O‘zbekistonga bormoqchiman.", cn: "我想好好学习乌兹别克语，将来去乌兹别克斯坦。" },
+                { uz: "Agar biron-bir chet tilini o‘rganishni xohlasangiz, bu tilga qiziqish bilan qarang.", cn: "如果您想学习任何一门外语，请带着兴趣去看待它。" },
+                { uz: "Shunda, albatta, yaxshi natijaga erishasiz.", cn: "这样，您一定能取得好成绩。" }
+                ]
+            },
+            {
+                id: 17,
+                title: "17-dars: Pekin-2008 Olimpiada o'yinlari",
+                titleCn: "第17课：2008年北京奥运会",
+                content: [
+                { uz: "2008-yil 8-avgustda XXR poytaxti Pekin shahrida 29-Yozgi Olimpiada o‘yinlarining ochilish marosimi bo‘lib o‘tdi.", cn: "2008年8月8日，第29届夏季奥林匹克运动会开幕式在中华人民共和国首都北京举行。" },
+                { uz: "Bu xitoyliklar uchun juda katta bayram bo‘ldi, chunki Xitoy xalqi bu kunni uzoq orzu qilgan edi.", cn: "这对中国人来说是一个盛大的节日，因为中国人民盼望这一天已经很久了。" },
+                { uz: "Olimpiada muvaffaqiyatli o‘tishi uchun Pekin, Tyanjin va boshqa shaharlarda ajoyib zamonaviy o‘yingohlar qurildi.", cn: "为了奥运会的成功举办，北京、天津和其他城市建设了宏伟的现代化体育场馆。" },
+                { uz: "Ayniqsa, hashamatli “Qush uyasi” Milliy o‘yingohi o‘zining chiroyli va hashamati bilan butun dunyoga mashhur bo‘ldi.", cn: "特别是豪华的“鸟巢”国家体育场以其美丽和宏伟闻名于世。" },
+                { uz: "“Suv kubi” da o‘tkazilgan suv sport turlari musobaqalari barcha tomoshabinlarda katta taassurot qoldirdi.", cn: "在“水立方”举行的水上运动比赛给所有观众留下了深刻印象。" },
+                { uz: "Olimpiadaning shiori “Bir dunyo, bir orzu” bo‘lib, bu xitoyliklar qalbidagi eng ezgu tilaklardan biridir.", cn: "奥运会的口号是“同一个世界，同一个梦想”，这是中国人心底最美好的愿望之一。" },
+                { uz: "Men juda omadliman, chunki men bu Olimpiadaga o‘z hissamni qo‘shdim.", cn: "我很幸运，因为我为这届奥运会做出了自己的贡献。" },
+                { uz: "Men Olimpiadada volontyor sifatida ishtirok etdim va tarjimon bo‘lib ishladim.", cn: "我作为志愿者参加了奥运会并担任翻译。" },
+                { uz: "Bu men uchun juda katta imkoniyat bo‘ldi.", cn: "这对我来说是一个巨大的机会。" },
+                { uz: "Men juda ko‘p do‘st orttirdim, yangi insonlar bilan tanishdim, dunyo bilan muloqot qildim.", cn: "我结交了很多朋友，认识了新的人，与世界进行了交流。" }
+                ]
+            },
+            {
+                id: 18,
+                title: "18-dars: Bahor fasli",
+                titleCn: "第18课：春季",
+                content: [
+                { uz: "Bir yil to‘rt fasldan iborat: qish, bahor, yoz, kuz.", cn: "一年由四个季节组成：冬、春、夏、秋。" },
+                { uz: "Albatta, har bir fasl o‘zicha chiroyli, lekin mening eng yaxshi ko‘radigan faslim bahor fasli.", cn: "当然，每个季节都有它独特的美，但我最喜欢的季节是春天。" },
+                { uz: "Menimcha, bahor yil fasllari ichida eng go‘zal fasldir.", cn: "我认为，春天是一年中最美丽的季节。" },
+                { uz: "Sovuq qishni kuzatib, o‘lkamizga bahor kirib keladi.", cn: "送走寒冷的冬天，春天来到了我们的国度。" },
+                { uz: "Odatda, xitoycha Yangi yil – Bahor bayramidan keyin bu go‘zallik va yoshlik fasli boshlanadi.", cn: "通常，在春节——春节之后，这个美丽和青春的季节就开始了。" },
+                { uz: "Bahorda tabiat ko‘rki va odamlar kayfiyati xuddi quyoshning iliq nurlari kabi yoqimli bo‘ladi.", cn: "春天，大自然的景色和人们的心情就像温暖的阳光一样令人愉悦。" },
+                { uz: "Bahorda tabiat qishki uyqudan uyg‘onadi: qorlar eriydi, daraxtlar gullaydi.", cn: "春天，大自然从冬眠中苏醒：冰雪消融，树木开花。" },
+                { uz: "Tabiat ko‘rki kundan-kunga chiroyli bo‘ladi.", cn: "大自然的景色一天比一天美丽。" },
+                { uz: "Bahor boshlanishi bilan dalalarda qishloq xo‘jalik ishlari ham boshlanib ketadi.", cn: "随着春天的开始，田野里的农业劳动也开始了。" },
+                { uz: "Xullas, bahor – yangi umid va shodlik fasli.", cn: "总之，春天是新的希望和欢乐的季节。" },
+                { uz: "Mana hozir bizda sovuq qish payti, qishning sovuq havosi va qordan zerikdim.", cn: "现在我们这里是寒冷的冬天，我厌倦了冬天的冷空气和雪。" },
+                { uz: "Bahorda sovuq havodan, uyda o‘tirishdan, qordan qutulaman.", cn: "春天我将摆脱寒冷的天气、宅在家里和积雪。" },
+                { uz: "Hovlida gullar ochiladi, oilamiz sayrga chiqadi, oromgohlarda dam olamiz.", cn: "院子里花儿开放，我们全家去郊游，在公园休息。" },
+                { uz: "Bahorning kelishini ortiq kuta olmayman. Iltimos, tezroq kel, bahor!", cn: "我迫不及待地等待春天的到来。请快点来吧，春天！" }
+                ]
+            }
+        ];
+
+        // --- Audio Utilities for Gemini TTS ---
+        const base64ToArrayBuffer = (base64) => {
+            const binaryString = window.atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        };
+
+        const writeString = (view, offset, string) => {
+            for (let i = 0; i < string.length; i++) {
+                view.setUint8(offset + i, string.charCodeAt(i));
+            }
+        };
+
+        const createWavHeader = (length, sampleRate = 24000, numChannels = 1, bitsPerSample = 16) => {
+            const buffer = new ArrayBuffer(44);
+            const view = new DataView(buffer);
+            writeString(view, 0, 'RIFF');
+            view.setUint32(4, 36 + length, true);
+            writeString(view, 8, 'WAVE');
+            writeString(view, 12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true); 
+            view.setUint16(22, numChannels, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate * numChannels * bitsPerSample / 8, true); 
+            view.setUint16(32, numChannels * bitsPerSample / 8, true); 
+            view.setUint16(34, bitsPerSample, true);
+            writeString(view, 36, 'data');
+            view.setUint32(40, length, true);
+            return buffer;
+        };
+
+        const fetchGeminiAudio = async (text, userApiKey) => {
+            if (!userApiKey) return null;
+            
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${userApiKey}`;
+            const payload = {
+                contents: [{ parts: [{ text: text }] }],
+                generationConfig: {
+                    responseModalities: ["AUDIO"],
+                    speechConfig: {
+                        voiceConfig: {
+                            prebuiltVoiceConfig: { voiceName: "Kore" }
+                        }
+                    }
+                },
+                model: "gemini-2.5-flash-preview-tts"
+            };
+
+            try {
+                const response = await fetch(url, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (!response.ok) throw new Error("TTS Request failed");
+                const data = await response.json();
+                const inlineData = data.candidates?.[0]?.content?.parts?.[0]?.inlineData;
+                
+                if (inlineData) {
+                    const pcmData = base64ToArrayBuffer(inlineData.data);
+                    const wavHeader = createWavHeader(pcmData.byteLength, 24000, 1, 16);
+                    const wavBlob = new Blob([wavHeader, pcmData], { type: 'audio/wav' });
+                    return URL.createObjectURL(wavBlob);
+                }
+                return null;
+            } catch (e) {
+                console.error("Audio generation error:", e);
+                return null;
+            }
+        };
+
+        // --- Main Components ---
+        const SettingsModal = ({ isOpen, onClose, apiKey, setApiKey }) => {
+            if (!isOpen) return null;
+            return (
+                <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md relative">
+                        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                            <X />
+                        </button>
+                        <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+                            <Settings className="text-blue-600" />
+                            语音设置
+                        </h2>
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Google Gemini API Key</label>
+                                <input 
+                                    type="password" 
+                                    value={apiKey}
+                                    onChange={(e) => setApiKey(e.target.value)}
+                                    placeholder="输入您的 API Key 以启用真人语音"
+                                    className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                />
+                                <p className="text-xs text-gray-500 mt-1">
+                                    * 如果不输入 Key，将使用浏览器默认的机械语音。
+                                </p>
+                            </div>
+                            <div className="flex justify-end gap-2 mt-6">
+                                <button onClick={onClose} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
+                                    保存并关闭
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const ReadingBoard = ({ currentLesson, playingIndex, setPlayingIndex, isPlaying, setIsPlaying, apiKey }) => {
+            const [hoveredIndex, setHoveredIndex] = useState(null);
+            const [isLoading, setIsLoading] = useState(false);
+            const audioRef = useRef(new Audio());
+            const synth = useRef(window.speechSynthesis);
+            const audioCache = useRef({}); 
+            const currentRequestRef = useRef(null);
+
+            useEffect(() => {
+                const audio = audioRef.current;
+                return () => {
+                    audio.pause();
+                    audio.currentTime = 0;
+                    synth.current.cancel();
+                    currentRequestRef.current = null;
+                };
+            }, [currentLesson]);
+
+            const speakBrowser = (text, index, onEnded) => {
+                synth.current.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = 0.9; 
+                // Try to find a related voice
+                const voices = synth.current.getVoices();
+                const voice = voices.find(v => v.lang.includes('uz')) || voices.find(v => v.lang.includes('tr'));
+                if (voice) utterance.voice = voice;
+
+                utterance.onend = () => {
+                    setIsPlaying(false);
+                    setPlayingIndex(null);
+                    if (onEnded) onEnded();
+                };
+                
+                setPlayingIndex(index);
+                setIsPlaying(true);
+                setIsLoading(false);
+                synth.current.speak(utterance);
+            };
+
+            const speakGemini = async (text, index, onEnded) => {
+                const requestId = Date.now();
+                currentRequestRef.current = requestId;
+                
+                // Check cache first
+                if (audioCache.current[text]) {
+                    playAudioUrl(audioCache.current[text], index, onEnded);
+                    return;
+                }
+
+                setIsLoading(true);
+                setPlayingIndex(index);
+
+                const audioUrl = await fetchGeminiAudio(text, apiKey);
+                
+                if (currentRequestRef.current !== requestId) return;
+
+                if (audioUrl) {
+                    audioCache.current[text] = audioUrl;
+                    playAudioUrl(audioUrl, index, onEnded);
+                } else {
+                    // Fallback to browser TTS if API fails
+                    setIsLoading(false);
+                    speakBrowser(text, index, onEnded);
+                }
+            };
+
+            const playAudioUrl = (url, index, onEnded) => {
+                const audio = audioRef.current;
+                audio.src = url;
+                audio.onended = () => {
+                    setIsPlaying(false);
+                    setPlayingIndex(null);
+                    if (onEnded) onEnded();
+                };
+                audio.play().catch(e => console.error("Playback failed", e));
+                setPlayingIndex(index);
+                setIsPlaying(true);
+                setIsLoading(false);
+            };
+
+            const speak = (text, index, onEnded = null) => {
+                // Stop any current audio
+                audioRef.current.pause();
+                synth.current.cancel();
+
+                if (apiKey) {
+                    speakGemini(text, index, onEnded);
+                } else {
+                    speakBrowser(text, index, onEnded);
+                }
+            };
+
+            const playAll = () => {
+                if (isPlaying) {
+                    audioRef.current.pause();
+                    synth.current.cancel();
+                    setIsPlaying(false);
+                    setPlayingIndex(null);
+                    currentRequestRef.current = null;
+                    return;
+                }
+
+                let index = 0;
+                const playNext = () => {
+                    if (index >= currentLesson.content.length) {
+                        setIsPlaying(false);
+                        setPlayingIndex(null);
+                        return;
+                    }
+                    const text = currentLesson.content[index].uz;
+                    speak(text, index, () => {
+                        index++;
+                        playNext();
+                    });
+                };
+                playNext();
+            };
+
+            return (
+                <div className="relative w-full max-w-4xl mx-auto bg-white rounded-xl shadow-2xl overflow-hidden border-4 border-blue-900">
+                    <div className="w-full h-24 bg-blue-900 relative flex items-center justify-between px-6">
+                        <div className="z-10 text-white">
+                            <h2 className="text-2xl font-bold">{currentLesson.title}</h2>
+                            <p className="text-blue-200 text-sm">{currentLesson.titleCn}</p>
+                        </div>
+                        <button 
+                            onClick={playAll}
+                            disabled={isLoading && playingIndex === null}
+                            className="z-10 bg-yellow-500 hover:bg-yellow-400 text-blue-900 rounded-full p-3 shadow-lg transition-transform transform hover:scale-105 disabled:opacity-50 flex items-center justify-center"
+                        >
+                            {isPlaying && playingIndex !== null ? <Pause fill="currentColor" /> : <Play fill="currentColor" />}
+                        </button>
+                    </div>
+
+                    <div className="p-6 bg-slate-50 min-h-[500px] relative">
+                        <div className="relative z-10 grid gap-4">
+                            {currentLesson.content.map((item, idx) => (
+                                <div 
+                                    key={idx}
+                                    className={`
+                                        group relative p-4 rounded-lg border-l-4 transition-all duration-300 cursor-pointer shadow-sm
+                                        ${playingIndex === idx 
+                                            ? 'bg-blue-100 border-blue-600 scale-[1.02] shadow-md' 
+                                            : 'bg-white border-gray-300 hover:border-blue-400 hover:shadow-md'
+                                        }
+                                    `}
+                                    onClick={() => speak(item.uz, idx)}
+                                    onMouseEnter={() => setHoveredIndex(idx)}
+                                    onMouseLeave={() => setHoveredIndex(null)}
+                                >
+                                    <div className="flex items-start gap-4">
+                                        <div className={`mt-1 p-2 rounded-full ${playingIndex === idx ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-400 group-hover:text-blue-500'}`}>
+                                            {playingIndex === idx && isLoading ? (
+                                                <Loader2 size={16} className="animate-spin" />
+                                            ) : playingIndex === idx ? (
+                                                <Volume2 size={16} className="animate-pulse" />
+                                            ) : (
+                                                <Volume2 size={16} />
+                                            )}
+                                        </div>
+                                        <div className="flex-1">
+                                            <p className={`text-lg font-medium mb-1 leading-relaxed ${playingIndex === idx ? 'text-blue-900' : 'text-gray-800'}`}>
+                                                {item.uz}
+                                            </p>
+                                            <div className={`
+                                                overflow-hidden transition-all duration-500 ease-in-out
+                                                ${hoveredIndex === idx || playingIndex === idx ? 'max-h-20 opacity-100' : 'max-h-0 opacity-0'}
+                                            `}>
+                                                <p className="text-gray-600 text-sm mt-2 border-t pt-2 border-gray-100 flex items-center gap-2">
+                                                    <Globe size={12} />
+                                                    {item.cn}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                    <div className="bg-gray-100 p-4 text-center text-gray-500 text-xs border-t">
+                        {apiKey ? "已启用真人AI语音 (Gemini)" : "当前使用浏览器默认语音，配置 API Key 可获得更好体验"}
+                    </div>
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [activeLessonId, setActiveLessonId] = useState(7);
+            const [isSidebarOpen, setSidebarOpen] = useState(true);
+            const [playingIndex, setPlayingIndex] = useState(null);
+            const [isPlaying, setIsPlaying] = useState(false);
+            const [apiKey, setApiKey] = useState("");
+            const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+            const currentLesson = lessons.find(l => l.id === activeLessonId);
+
+            const handleLessonChange = (id) => {
+                setActiveLessonId(id);
+                setPlayingIndex(null);
+                setIsPlaying(false);
+                if (window.innerWidth < 768) setSidebarOpen(false);
+            };
+
+            return (
+                <div className="min-h-screen bg-gray-200 font-sans text-gray-900 flex flex-col md:flex-row overflow-hidden relative">
+                    {/* Settings Modal */}
+                    <SettingsModal 
+                        isOpen={isSettingsOpen} 
+                        onClose={() => setIsSettingsOpen(false)}
+                        apiKey={apiKey}
+                        setApiKey={setApiKey}
+                    />
+
+                    {/* Sidebar */}
+                    <div className={`
+                        fixed md:relative z-30 h-full bg-blue-900 text-white w-64 transition-transform duration-300 ease-in-out shadow-xl flex flex-col
+                        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0 md:w-20 lg:w-64'}
+                    `}>
+                        <div className="p-4 border-b border-blue-800 flex items-center justify-between">
+                            <div className="flex items-center gap-2 font-bold text-xl lg:text-2xl overflow-hidden whitespace-nowrap">
+                                <div className="p-2 bg-yellow-500 rounded text-blue-900"><BookOpen size={20}/></div>
+                                <span className="md:hidden lg:block">O'zbek Tili</span>
+                            </div>
+                            <button onClick={() => setSidebarOpen(!isSidebarOpen)} className="md:hidden p-1 rounded hover:bg-blue-800">
+                                <Menu size={20}/>
+                            </button>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto py-4">
+                            {lessons.map((lesson) => (
+                                <button
+                                    key={lesson.id}
+                                    onClick={() => handleLessonChange(lesson.id)}
+                                    className={`
+                                        w-full text-left px-4 py-3 flex items-center gap-3 transition-colors relative
+                                        ${activeLessonId === lesson.id ? 'bg-blue-800 text-yellow-400' : 'hover:bg-blue-800 text-blue-100'}
+                                    `}
+                                >
+                                    <span className="font-mono text-sm opacity-60 w-6">{lesson.id}</span>
+                                    <div className="flex-1 min-w-0 md:hidden lg:block">
+                                        <p className="font-medium truncate">{lesson.title.split(':')[1]}</p>
+                                        <p className="text-xs opacity-60 truncate">{lesson.titleCn.split('：')[1]}</p>
+                                    </div>
+                                    {activeLessonId === lesson.id && (
+                                        <div className="absolute right-0 top-0 bottom-0 w-1 bg-yellow-500"></div>
+                                    )}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Main Content */}
+                    <div className="flex-1 flex flex-col h-screen overflow-hidden relative">
+                        {/* Header */}
+                        <div className="bg-white shadow-sm p-4 flex items-center justify-between z-20">
+                            <div className="flex items-center gap-4">
+                                <button onClick={() => setSidebarOpen(true)} className="md:hidden text-gray-600">
+                                    <Menu />
+                                </button>
+                                <h1 className="font-bold text-gray-800 hidden md:block">乌兹别克语教程</h1>
+                            </div>
+                            <button 
+                                onClick={() => setIsSettingsOpen(true)}
+                                className="p-2 rounded-full hover:bg-gray-100 text-gray-600 flex items-center gap-2"
+                                title="设置语音"
+                            >
+                                <span className="text-sm font-medium hidden sm:block">
+                                    {apiKey ? "语音已就绪" : "配置语音"}
+                                </span>
+                                <Settings />
+                            </button>
+                        </div>
+
+                        <main className="flex-1 overflow-y-auto p-4 md:p-8 relative">
+                            <div className="max-w-4xl mx-auto space-y-6">
+                                <div className="bg-gradient-to-r from-blue-600 to-blue-800 rounded-xl p-6 text-white shadow-lg mb-8">
+                                    <h1 className="text-3xl font-bold mb-2">Salom! (你好!)</h1>
+                                    <p className="opacity-90">
+                                        请选择左侧的课程开始阅读练习。本应用专注于《乌兹别克语教程》第7-18课。
+                                    </p>
+                                </div>
+
+                                <ReadingBoard 
+                                    currentLesson={currentLesson} 
+                                    playingIndex={playingIndex}
+                                    setPlayingIndex={setPlayingIndex}
+                                    isPlaying={isPlaying}
+                                    setIsPlaying={setIsPlaying}
+                                    apiKey={apiKey}
+                                />
+                            </div>
+                        </main>
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
